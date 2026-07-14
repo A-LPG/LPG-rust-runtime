@@ -6,9 +6,9 @@ use lpg_test::{LPGLexer, LPGParser};
 fn parse_jikespg_grammar() {
     let path = {
         let candidates = [
+            PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("testdata/jikespg.g"),
             PathBuf::from(env!("CARGO_MANIFEST_DIR"))
                 .join("../../../LPG-go-runtime/test/lpg/jikespg.g"),
-            PathBuf::from("/Users/kuafu/workspace/lpg-project/LPG-go-runtime/test/lpg/jikespg.g"),
         ];
         candidates
             .into_iter()

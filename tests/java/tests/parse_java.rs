@@ -7,10 +7,9 @@ fn parse_java_test_file() {
     let path = {
         let candidates = [
             PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("testdata/test.java"),
+            PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("testdata/minimal.java"),
             PathBuf::from(env!("CARGO_MANIFEST_DIR"))
                 .join("../../../LPG-go-runtime/test/java/test.java"),
-            PathBuf::from("/Users/kuafu/workspace/lpg-project/LPG-go-runtime/test/java/test.java"),
-            PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("testdata/minimal.java"),
         ];
         candidates
             .into_iter()
