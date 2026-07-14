@@ -1,4 +1,7 @@
 use std::any::Any;
+use std::rc::Rc;
+
+use crate::traits::IAst;
 
 /// Dynamic array of boxed values, mirroring Go's `ArrayList`.
 pub struct ArrayList {
@@ -30,9 +33,29 @@ impl ArrayList {
     }
 
     pub fn clone_list(&self) -> Self {
-        // Go performs a shallow copy of interface references; owned `Box<dyn Any>`
-        // cannot be cloned without changing the element type.
-        Self::new_with_size(self.array.len(), self.array.len())
+        self.clone_shallow()
+    }
+
+    /// Shallow-copy list slots. Elements are moved into the new list by
+    /// duplicating `Rc`-backed `Any` payloads where possible via pointer clone
+    /// of `Rc<dyn IAst>` (the canonical AST box type); other payloads are
+    /// copied as empty slots to avoid requiring `Clone` on arbitrary `Any`.
+    pub fn clone_shallow(&self) -> Self {
+        let mut array = Vec::with_capacity(self.array.len());
+        for slot in &self.array {
+            match slot {
+                Some(boxed) => {
+                    if let Some(ast) = boxed.downcast_ref::<Rc<dyn IAst>>() {
+                        array.push(Some(Box::new(ast.clone()) as Box<dyn Any>));
+                    } else {
+                        // Non-AST payloads cannot be cloned; preserve length.
+                        array.push(None);
+                    }
+                }
+                None => array.push(None),
+            }
+        }
+        Self { array }
     }
 
     pub fn clear(&mut self) -> bool {
