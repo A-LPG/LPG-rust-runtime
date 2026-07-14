@@ -1,0 +1,8 @@
+[package]
+name = "generated_tables"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+lpg2 = { path = "../../lpg2" }

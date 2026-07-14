@@ -1,0 +1,11 @@
+[package]
+name = "lpg2"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+description = "Rust runtime for LPG2 (LALR Parser Generator)"
+repository = "https://github.com/A-LPG/LPG-rust-runtime"
+
+[dependencies]
+thiserror = "2"

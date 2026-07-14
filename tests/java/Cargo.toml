@@ -1,0 +1,11 @@
+[package]
+name = "java-test"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+lpg2 = { path = "../../lpg2" }
+
+[lib]
+path = "src/lib.rs"
