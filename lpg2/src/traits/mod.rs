@@ -8,7 +8,7 @@ mod prs_stream;
 mod rule_action;
 mod token_stream;
 
-pub use ast::{box_ast, unbox_ast, IAst, IAstVisitor};
+pub use ast::{box_ast, downcast_ast, unbox_ast, IAst, IAstVisitor};
 pub use itoken::IToken;
 pub use lex_stream::{ILexStream, LexStreamRef};
 pub use message_handler::{

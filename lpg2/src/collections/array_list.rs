@@ -36,6 +36,11 @@ impl ArrayList {
         self.clone_shallow()
     }
 
+    /// Reverse element order in place (used when materializing right-recursive AST lists).
+    pub fn reverse(&mut self) {
+        self.array.reverse();
+    }
+
     /// Shallow-copy list slots. Elements are moved into the new list by
     /// duplicating `Rc`-backed `Any` payloads where possible via pointer clone
     /// of `Rc<dyn IAst>` (the canonical AST box type); other payloads are
