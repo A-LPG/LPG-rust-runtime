@@ -1,68 +1,54 @@
 # LPG-rust-runtime
 
-Rust runtime library for [LPG2](https://github.com/A-LPG/LPG2) (LALR Parser Generator).
+Rust runtime for [LPG2](https://github.com/A-LPG/LPG2) (lexer/parser engines, AST helpers, recovery).
 
-This crate ports the Go runtime [`LPG-go-runtime/lpg2`](https://github.com/A-LPG/LPG-go-runtime) to idiomatic Rust, providing lexer/parser engines, token streams, error recovery, and diagnostics used by LPG-generated parsers.
+## Install / coordinates
 
-## Crate layout
-
-```
-LPG-rust-runtime/
-├── lpg2/              # Main runtime crate
-├── tests/lpg/         # LPG self-parser integration test (generated sources)
-├── tests/java/        # Java backtracking grammar integration test scaffold
-└── scripts/           # Code generation helpers
-```
-
-## Building
-
-```bash
-cargo build
-cargo test
-cargo clippy -- -D warnings
-```
-
-## Using with LPG2
-
-1. Build LPG2 with Rust table support:
-
-```bash
-cd ../LPG2/lpg2
-cmake -DLPG2_DEPLOY_TO_VSCODE=OFF -B build
-cmake --build build
-```
-
-2. Use Rust templates from `LPG2/lpg-generator-templates-2.1.00/templates/rust/`:
-
-- `LexerTemplateF.gi`
-- `KeywordTemplateF.gi`
-- `dtParserTemplateF.gi`
-- `btParserTemplateF.gi`
-
-3. Set environment variables when generating:
-
-```bash
-export LPG_TEMPLATE=/path/to/LPG2/lpg-generator-templates-2.1.00/templates/rust
-export LPG_INCLUDE=/path/to/LPG2/lpg-generator-templates-2.1.00/include/rust
-lpg -programming_language=rust -template=LexerTemplateF.gi MyLexer.gi
-```
-
-4. Add to generated `Cargo.toml`:
+| Field | Value |
+|-------|-------|
+| Package | Cargo crate `lpg2` (path or crates.io) |
+| Version | 1.0.0 |
+| Compatible generator | LPG2 ≥ 2.3.0 — see [`ecosystem/compat.json`](https://github.com/A-LPG/LPG2/blob/main/ecosystem/compat.json) |
 
 ```toml
 [dependencies]
 lpg2 = { path = "../LPG-rust-runtime/lpg2" }
+# or, once published: lpg2 = "1.0"
 ```
 
-## Integration tests
+## Minimum toolchain
 
-Regenerate the LPG self-parser test sources:
+Rust stable (edition 2021).
+
+## Build and test
 
 ```bash
-./scripts/generate_lpg_test.sh
-cd tests/lpg && cargo test
+cargo test
+cargo clippy -- -D warnings
 ```
 
-## License
+## Wiring generated files
 
-Eclipse Public License v2.0
+1. Generate with `-programming_language=rust -table` and Rust `dtParserTemplateF.gi` / `btParserTemplateF.gi`
+2. Include `*prs.rs`, `*sym.rs`, and parser sources in your crate
+3. Depend on this runtime as above
+
+## Features
+
+| Feature | Status |
+|---------|--------|
+| Deterministic parser | yes |
+| Backtracking | yes |
+| Nested automatic AST | yes (+ behavior tests in LPG2 CI) |
+| `%Recover` prosthetic AST | yes |
+
+## Publish status
+
+- Channel: crates.io (workflow: `.github/workflows/publish.yml`, needs `CARGO_REGISTRY_TOKEN`)
+- Automation: dry-run always; publish when secret set
+
+## Links
+
+- Generator: https://github.com/A-LPG/LPG2
+- Ecosystem: https://github.com/A-LPG/LPG2/blob/main/docs/ECOSYSTEM.md
+- Runnable sample: https://github.com/A-LPG/LPG2/tree/main/examples/calculator/rust

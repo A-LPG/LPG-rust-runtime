@@ -1,0 +1,29 @@
+name: Publish crates.io
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Dry-run publish
+        working-directory: lpg2
+        run: cargo publish --dry-run
+      - name: Publish
+        if: ${{ secrets.CARGO_REGISTRY_TOKEN != '' }}
+        working-directory: lpg2
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        run: cargo publish
+      - name: Skip notice
+        if: ${{ secrets.CARGO_REGISTRY_TOKEN == '' }}
+        run: echo "CARGO_REGISTRY_TOKEN not set; dry-run only."
