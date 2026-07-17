@@ -6,7 +6,7 @@ use crate::error::{
 };
 use crate::monitor::Monitor;
 use crate::parse_table::ParseTable;
-use crate::traits::{IPrsStream, RuleAction};
+use crate::traits::{box_ast, IPrsStream, RuleAction};
 use crate::utils::arraycopy;
 
 use super::configuration_stack::ConfigurationStack;
@@ -469,14 +469,40 @@ where
                 self.process_reductions();
             } else {
                 if self.tok_stream.get_kind(curtok) > self.nt_offset {
-                    if let Some(token) = self.tok_stream.get_i_token(curtok) {
-                        if let Some(badtok) = token.as_error_token() {
-                            if let Some(et) = badtok.get_error_token() {
-                                return Err(BadParseException::new(et.get_token_index()).into());
+                    //
+                    // A replayed nonterminal ErrorToken (inserted by scope
+                    // recovery). If the RuleAction supplies prosthetic-AST
+                    // factories, synthesize a placeholder node; otherwise keep
+                    // the historical behavior of throwing a BadParseException.
+                    //
+                    let kind = self.tok_stream.get_kind(curtok);
+                    let token = self.tok_stream.get_i_token(curtok);
+                    let factories = self.ra.get_prosthetic_ast();
+                    let mut synthesized = None;
+                    if let (Some(factories), Some(tok)) = (factories, token) {
+                        let slot = self.prs.get_prosthesis_index(kind);
+                        if slot >= 0 && (slot as usize) < factories.len() {
+                            if let Some(factory) = &factories[slot as usize] {
+                                synthesized = Some(factory(tok));
                             }
                         }
                     }
-                    return Err(BadParseException::new(curtok).into());
+                    match synthesized {
+                        Some(node) => {
+                            let top = self.stacks.state_stack_top as usize;
+                            self.stacks.parse_stack[top] = Some(box_ast(node));
+                        }
+                        None => {
+                            if let Some(token) = self.tok_stream.get_i_token(curtok) {
+                                if let Some(badtok) = token.as_error_token() {
+                                    if let Some(et) = badtok.get_error_token() {
+                                        return Err(BadParseException::new(et.get_token_index()).into());
+                                    }
+                                }
+                            }
+                            return Err(BadParseException::new(curtok).into());
+                        }
+                    }
                 }
                 self.last_token = curtok;
                 ti += 1;

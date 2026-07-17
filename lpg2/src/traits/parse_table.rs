@@ -48,4 +48,12 @@ pub trait ParseTable: Send + Sync {
     fn is_nullable(&self, symbol: i32) -> bool;
     fn is_valid_for_parser(&self) -> bool;
     fn get_backtrack(&self) -> bool;
+
+    /// Map a nonterminal token kind (a symbol value with `NT_OFFSET` already
+    /// applied) to a compact index into `RuleAction::get_prosthetic_ast()`.
+    /// Tables generated for grammars without `%Recover` symbols use this
+    /// default, which selects the null-factory slot.
+    fn get_prosthesis_index(&self, _index: i32) -> i32 {
+        0
+    }
 }
