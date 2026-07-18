@@ -49,6 +49,12 @@ pub trait ParseTable: Send + Sync {
     fn is_valid_for_parser(&self) -> bool;
     fn get_backtrack(&self) -> bool;
 
+    /// True when the table was generated with `-glr`. Defaults to false so
+    /// older deterministic/backtracking tables remain implementable.
+    fn is_glr(&self) -> bool {
+        false
+    }
+
     /// Map a nonterminal token kind (a symbol value with `NT_OFFSET` already
     /// applied) to a compact index into `RuleAction::get_prosthetic_ast()`.
     /// Tables generated for grammars without `%Recover` symbols use this

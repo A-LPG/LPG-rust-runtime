@@ -92,6 +92,30 @@ impl NotBacktrackParseTableException {
 
 #[derive(Debug, Error)]
 #[error("{message}")]
+pub struct NotGLRParseTableException {
+    message: String,
+}
+
+impl NotGLRParseTableException {
+    pub fn new(info: impl Into<String>) -> Self {
+        let message = {
+            let s = info.into();
+            if s.is_empty() {
+                "NotGLRParseTableException".to_string()
+            } else {
+                s
+            }
+        };
+        Self { message }
+    }
+
+    pub fn to_string_msg(&self) -> String {
+        self.to_string()
+    }
+}
+
+#[derive(Debug, Error)]
+#[error("{message}")]
 pub struct NotDeterministicParseTableException {
     message: String,
 }
@@ -313,6 +337,8 @@ pub enum LpgException {
     MismatchedInputChars(#[from] MismatchedInputCharsException),
     #[error(transparent)]
     NotBacktrackParseTable(#[from] NotBacktrackParseTableException),
+    #[error(transparent)]
+    NotGLRParseTable(#[from] NotGLRParseTableException),
     #[error(transparent)]
     NotDeterministicParseTable(#[from] NotDeterministicParseTableException),
     #[error(transparent)]

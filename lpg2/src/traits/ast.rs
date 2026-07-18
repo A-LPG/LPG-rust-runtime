@@ -19,6 +19,13 @@ pub trait IAstVisitor {
 /// Children are returned by value (matching Go's `*ArrayList` copies).
 pub trait IAst {
     fn get_next_ast(&self) -> Option<Rc<dyn IAst>>;
+
+    /// GLR packed-forest projection. Deterministic ASTs leave these as no-ops.
+    fn set_next_ast(&self, _n: Option<Rc<dyn IAst>>) {}
+    fn reset_next_ast(&self) {
+        self.set_next_ast(None);
+    }
+
     fn set_parent(&self, parent: Option<Rc<dyn IAst>>);
     fn get_parent(&self) -> Option<Rc<dyn IAst>>;
 
