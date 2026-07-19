@@ -7,9 +7,10 @@ use crate::error::{
 };
 use crate::monitor::Monitor;
 use crate::parse_table::ParseTable;
-use crate::traits::{box_ast, unbox_ast, IAst, RuleAction};
+use crate::traits::{box_ast, unbox_ast, GlrRecoverBridge, IAst, IPrsStream, RuleAction};
 use crate::token_stream::TokenStream;
 
+use super::backtracking::BacktrackingParser;
 use super::gss_edge::GssEdge;
 use super::gss_node::GssNode;
 use super::sppf_node::{SppfNode, SppfPackedNode};
@@ -112,9 +113,9 @@ impl GlrConfig {
 
 impl<TS, PT, RA> GLRParser<TS, PT, RA>
 where
-    TS: TokenStream,
+    TS: TokenStream + IPrsStream,
     PT: ParseTable + Clone,
-    RA: RuleAction,
+    RA: RuleAction + GlrRecoverBridge + Copy,
 {
     pub fn new(
         tok_stream: Option<TS>,
@@ -312,10 +313,30 @@ where
     pub fn parse_entry(
         &mut self,
         marker_kind: i32,
-        _max_error_count: i32,
+        max_error_count: i32,
     ) -> Result<Option<Box<dyn Any>>, LpgException> {
-        // GLR+%Recover fallback is deferred; e2e uses error-free input.
-        self.parse_entry_no_repair(marker_kind)
+        match self.parse_entry_no_repair(marker_kind) {
+            Ok(ast) => Ok(ast),
+            Err(LpgException::BadParse(_)) if max_error_count > 0 => {
+                let tok_stream = self
+                    .tok_stream
+                    .take()
+                    .ok_or_else(|| BadParseException::new(0))?;
+                let monitor = self.monitor.take();
+                let ra = self.ra;
+                let prs = self.prs.clone();
+                let mut bt = Box::new(BacktrackingParser::new(tok_stream, prs, ra, monitor)?);
+                self.ra
+                    .set_recover_bt_ptr(bt.as_mut() as *mut _ as *mut ());
+                let result = bt.fuzzy_parse_entry(marker_kind, max_error_count);
+                self.ra.clear_recover_bt();
+                let bt = *bt;
+                self.tok_stream = Some(bt.tok_stream);
+                self.monitor = bt.monitor;
+                result
+            }
+            Err(e) => Err(e),
+        }
     }
 
     fn parse_entry_no_repair(

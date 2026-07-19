@@ -25,3 +25,10 @@ pub trait RuleAction {
         None
     }
 }
+
+/// Lets generated GLR parsers route semantic accessors to an active
+/// [`BacktrackingParser`] during GLR→BT `%Recover` replay.
+pub trait GlrRecoverBridge: RuleAction {
+    fn set_recover_bt_ptr(&mut self, bt: *mut ());
+    fn clear_recover_bt(&mut self);
+}

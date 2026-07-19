@@ -18,5 +18,5 @@ pub use message_handler::{
 pub use monitor::Monitor;
 pub use parse_table::ParseTable;
 pub use prs_stream::{IPrsStream, PrsStreamRef, PrsStreamWeak};
-pub use rule_action::{ProstheticAst, RuleAction};
+pub use rule_action::{GlrRecoverBridge, ProstheticAst, RuleAction};
 pub use token_stream::TokenStream;

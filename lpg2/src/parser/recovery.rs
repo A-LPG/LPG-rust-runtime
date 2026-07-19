@@ -374,6 +374,9 @@ where
         let mut old_action_size = 0;
         self.diagnose.state_stack_top = 0;
         self.diagnose.state_stack[0] = self.diagnose.start_state;
+        if self.action_stack.len() < self.diagnose.state_stack.len() {
+            self.action_stack.resize(self.diagnose.state_stack.len(), 0);
+        }
 
         let mut recovery_attempts = 0;
         const MAX_RECOVERY_ATTEMPTS: i32 = 64;
